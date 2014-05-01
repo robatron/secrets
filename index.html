@@ -1,0 +1,49 @@
+<head>
+    <title>Secrets</title>
+</head>
+<body>
+    <h1>Secrets</h1>
+    <p>If you don't know what this is, you're probably not meant to.</p>
+    <div id='messages'>
+        <ul>
+            <li><a class='message' href='javascript:;'>fpy1u</a></li>
+        </ul>
+        <p id='decrpyted-message'></p>
+    </div>
+    <hr>
+    <div id='admin'>
+        [<a id='new' href='javascript:;'>Create new message</a></li>]
+        <p id='encrypted-message'></p>
+    </div>
+</body>
+<script src="./lib/sjcl.js"></script>
+<script>
+    var BITS = 256;
+    var $ = function ( id ) { return document.querySelector( id ); };
+    var get_rand_id = function ( len ) {
+        var ALLOWED = 'abcdefghijklmnopqrstuvwxyz1234567890';
+        var id = [];
+        for ( var i = 0; i < len; ++i ) {
+            var rand_idx = Math.floor( Math.random() * ALLOWED.length - 1 );
+            id.push( ALLOWED[ rand_idx ] );
+        }
+        return id.join( '' );
+    };
+    $( '#new' ).onclick = function () {
+        var pass    = prompt( 'Password?' );
+        var message = prompt( 'Message?' );
+        var id      = get_rand_id( 6 );
+        $( '#encrypted-message' ).innerHTML =
+            '/*' + id + '*/' +
+            '$( "#decrpyted-message" ).innerHTML = ' +
+            'sjcl.json.decrypt( prompt( "Password?" ), \'' +
+                sjcl.json.encrypt( pass, message, { ks: BITS } ) + '\', ' +
+            '{ ks: ' + BITS + ' } );'
+    };
+    $( '.message' ).onclick = function ( e ) {
+        e.preventDefault();
+        var id      = e.target.innerText;
+        var pass    = prompt( 'Password?' );
+        document.write( '<script src="./messages/' + id + '.js"><\/script>' );
+    };
+</script>
