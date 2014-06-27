@@ -3,13 +3,14 @@
 
     If you don't know what this is, you're probably not meant to.
 
-    Open this file in a web browser that was born after January 2014.
+    Open this file in a web browser that is born January 2014.
 -->
 
 <!-- Secrets -->
 <script id="secrets" type="application/json">
     [
-        {"iv":"5NwlfkgZddyn8/AzEKi0lg==","v":1,"iter":1000,"ks":256,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"RXP2KE3eKWk=","ct":"WKLdJxN/Axi02DxJe7EhHcd9uSJVpu5DYm0By59sZnlJSNGyPtGjVvQxrdPqLJ57n7jmWmHQpfT/qv6YKKSO9bQJKzaMFY0Z5xOdQPzy9DxeGL6tI+SXPy3FwqRf18k7oC8qtWa6iIqyyqrxeziAPhaxnHqPE7HUGGfSPmqUQUkLsFKh"}
+        {"iv":"5NwlfkgZddyn8/AzEKi0lg==","v":1,"iter":1000,"ks":256,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"RXP2KE3eKWk=","ct":"WKLdJxN/Axi02DxJe7EhHcd9uSJVpu5DYm0By59sZnlJSNGyPtGjVvQxrdPqLJ57n7jmWmHQpfT/qv6YKKSO9bQJKzaMFY0Z5xOdQPzy9DxeGL6tI+SXPy3FwqRf18k7oC8qtWa6iIqyyqrxeziAPhaxnHqPE7HUGGfSPmqUQUkLsFKh"},
+        {"iv":"9UgyWPxJIfsQjWX23fko9g==","v":1,"iter":1000,"ks":256,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"w9sHeOirAZk=","ct":"yyB9Q2y+OpVEvlo="}
     ]
 </script>
 
@@ -17,12 +18,31 @@
 <head>
     <title>Secrets</title>
     <style>
+        body{
+            font-family: monospace;
+        }
+        .controls {
+            display: flex;
+            width: 100%
+        }
+        .controls .control {
+            flex-grow: 1;
+            height: 25px;
+            margin: 0;
+        }
         .input {
             display: block;
             width: 100%;
         }
-        textarea {
+        #password {
+            height: 25px;
+        }
+        #message {
             height: 10em;
+        }
+        .error {
+            color: red;
+            visibility: hidden;
         }
     </style>
 </head>
@@ -30,16 +50,22 @@
     <h1>Secrets</h1>
     <p>If you don't know what this is, you're probably not meant to.</p>
 
-    <input id="password" class="input" type="password" placeholder="password">
-    <textarea id="message" class="input" placeholder="message"></textarea>
-    <button id="encrypt" onclick="encrypt()">Encrypt</button>
-    <button id="decrypt" onclick="decrypt()">Decrypt</button>
+    <p>
+        <input id="password" class="input" type="password" placeholder="password">
+        <textarea id="message" class="input" placeholder="message"></textarea>
+    </p>
+    <p>
+        <div class="controls">
+            <button id="encrypt" class="control" onclick="encrypt()">Encrypt</button>
+            <button id="decrypt" class="control" onclick="decrypt()">Decrypt</button>
+            <button id="clear" class="control" onclick="reset_ui()">Reset</button>
+        </div>
+    </p>
+
+    <p class="error">&gt;&gt;&gt; Error! <span class="error-message"><!-- js --></span></p>
 
     <h2>Messages</h2>
-    <ul id="secrets-list">
-        <li><a id='new' href='javascript:;'>[+]</a></li>
-        <!-- the rest of the list filled via JS -->
-    </ul>
+    <ol id="secrets-list"><!-- js --></ol>
 </body>
 
 <!-- Scripts -->
@@ -48,25 +74,61 @@
 
     var $ = function ( id ) { return document.querySelector( id ) };
 
-    var print = function ( s, select ) {
-        var $out = $( '#message' );
-        $out.value = s;
+    var print = function ( msg, select ) {
+        var $message = $( '#message' );
+        $message.value = msg;
         if ( select ) {
-            $out.focus();
-            $out.select();
+            $message.focus();
+            $message.select();
         }
+    };
+
+    var display_error = function ( errMsg ) {
+        $( '.error' ).style.visibility = 'visible';
+        $( '.error-message' ).innerHTML = errMsg;
     };
 
     var get_secrets = function () { return JSON.parse( $( '#secrets' ).innerHTML ) };
 
-    var get_rand_id = function ( len ) {
-        var ALLOWED = 'abcdefghijklmnopqrstuvwxyz1234567890';
-        var id = [];
-        for ( var i = 0; i < len; ++i ) {
-            var rand_idx = Math.floor( Math.random() * ALLOWED.length - 1 );
-            id.push( ALLOWED[ rand_idx ] );
+    var encrypt = function ( pass, msg ) {
+        var pass   = $( '#password' ).value;
+        var msg    = $( '#message' ).value;
+        $( '.error' ).style.visibility = 'hidden';
+        if ( !pass ) {
+            display_error( 'Missing password.' );
+        } else if ( !msg ) {
+            display_error( 'Missing message.' );
+        } else {
+            try {
+                var secret = sjcl.json.encrypt( pass, msg, { ks: BITS } );
+                print( secret );
+            } catch ( e ) {
+                display_error( 'Cannot decrypt: ' + e.message  );
+            }
         }
-        return id.join( '' );
+    };
+
+    var decrypt = function () {
+        var pass   = $( '#password' ).value;
+        var msg    = $( '#message' ).value;
+        $( '.error' ).style.visibility = 'hidden';
+        if ( !pass ) {
+            display_error( 'Missing password.' );
+        } else if ( !msg ) {
+            display_error( 'Missing message.' );
+        } else {
+            try {
+                var secret = sjcl.json.decrypt( pass, msg, { ks: BITS } );
+                print( secret );
+            } catch ( e ) {
+                display_error( 'Cannot decrypt: ' + e.message  );
+            }
+        }
+    };
+
+    var reset_ui = function () {
+        $( '#message' ).value = $( '#password' ).value = null;
+        $( '.error' ).style.visibility = 'hidden';
     };
 
     var populate_secrets_list = function () {
@@ -81,46 +143,17 @@
     };
 
     var display_secret = function ( secret_id ) {
-        print( get_secrets()[ secret_id ] );
+        get_secrets().forEach( function ( secret ) {
+            if ( secret.iv === secret_id ) {
+                print( JSON.stringify( secret ) );
+                return;
+            }
+        } );
     };
 
-    var encrypt = function () {
-        var pass   = $( '#password' ).value;
-        var msg    = $( '#message' ).value;
-        var secret = sjcl.json.encrypt( pass, msg, { ks: BITS } );
-        var prefix = '\"' + get_rand_id( 6 ) + '\":';
-        print( prefix + secret, true );
+    window.onload = function () {
+        populate_secrets_list();
     };
-
-    var decrypt = function () {
-        var pass = $( '#password' ).value;
-        var msg  = $( '#message' ).value;
-        var secret = sjcl.json.decrypt( pass, msg, { ks: BITS } );
-        print( secret );
-    };
-
-    document.onload = function () {
-
-        $( '#new' ).onclick = function () {
-            var pass    = prompt( 'Password?' );
-            var message = prompt( 'Message?' );
-            var id      = get_rand_id( 6 );
-            $( '#encrypted-message' ).innerHTML =
-                '/*' + id + '*/' +
-                '$( "#decrpyted-message" ).innerHTML = ' +
-                'sjcl.json.decrypt( prompt( "Password?" ), \'' +
-                    sjcl.json.encrypt( pass, message, { ks: BITS } ) + '\', ' +
-                '{ ks: ' + BITS + ' } );'
-        };
-
-        $( '.message' ).onclick = function ( e ) {
-            e.preventDefault();
-            var id      = e.target.innerText;
-            var pass    = prompt( 'Password?' );
-            document.write( '<script src="./messages/' + id + '.js"><\/script>' );
-        };
-    };
-
 
     // Stanford Javascript Crypto Library
     // http://bitwiseshiftleft.github.io/sjcl/
