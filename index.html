@@ -101,6 +101,7 @@
         } else {
             try {
                 var secret = sjcl.json.encrypt( pass, msg, { ks: BITS } );
+                location.hash = btoa(secret);
                 print( secret );
             } catch ( e ) {
                 display_error( 'Cannot decrypt: ' + e.message  );
