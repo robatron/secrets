@@ -101,7 +101,7 @@
         } else {
             try {
                 var secret = sjcl.json.encrypt( pass, msg, { ks: BITS } );
-                location.hash = btoa(secret);
+                location.hash = btoa( secret );
                 print( secret );
             } catch ( e ) {
                 display_error( 'Cannot decrypt: ' + e.message  );
@@ -154,6 +154,7 @@
 
     window.onload = function () {
         populate_secrets_list();
+        $( '#message' ).value = atob( location.hash.split( '#' )[ 1 ] );
     };
 
     // Stanford Javascript Crypto Library
