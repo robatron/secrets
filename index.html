@@ -3,16 +3,8 @@
 
     If you don't know what this is, you're probably not meant to.
 
-    Open this file in a web browser that is born January 2014.
+    Open this file in a web browser that was born after January 2014.
 -->
-
-<!-- Secrets -->
-<script id="secrets" type="application/json">
-    [
-        {"iv":"5NwlfkgZddyn8/AzEKi0lg==","v":1,"iter":1000,"ks":256,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"RXP2KE3eKWk=","ct":"WKLdJxN/Axi02DxJe7EhHcd9uSJVpu5DYm0By59sZnlJSNGyPtGjVvQxrdPqLJ57n7jmWmHQpfT/qv6YKKSO9bQJKzaMFY0Z5xOdQPzy9DxeGL6tI+SXPy3FwqRf18k7oC8qtWa6iIqyyqrxeziAPhaxnHqPE7HUGGfSPmqUQUkLsFKh"},
-        {"iv":"9UgyWPxJIfsQjWX23fko9g==","v":1,"iter":1000,"ks":256,"ts":64,"mode":"ccm","adata":"","cipher":"aes","salt":"w9sHeOirAZk=","ct":"yyB9Q2y+OpVEvlo="}
-    ]
-</script>
 
 <!-- UI -->
 <head>
@@ -58,14 +50,11 @@
         <div class="controls">
             <button id="encrypt" class="control" onclick="encrypt()">Encrypt</button>
             <button id="decrypt" class="control" onclick="decrypt()">Decrypt</button>
-            <button id="clear" class="control" onclick="reset_ui()">Reset</button>
+            <button id="clear"   class="control" onclick="reset_ui()">Reset</button>
         </div>
     </p>
 
     <p class="error">&gt;&gt;&gt; Error! <span class="error-message"><!-- js --></span></p>
-
-    <h2>Messages</h2>
-    <ol id="secrets-list"><!-- js --></ol>
 </body>
 
 <!-- Scripts -->
@@ -87,12 +76,10 @@
         $( '.error' ).style.visibility = 'visible';
         $( '.error-message' ).innerHTML = errMsg;
     };
-
-    var get_secrets = function () { return JSON.parse( $( '#secrets' ).innerHTML ) };
-
+    
     var encrypt = function ( pass, msg ) {
-        var pass   = $( '#password' ).value;
-        var msg    = $( '#message' ).value;
+        var pass = $( '#password' ).value;
+        var msg  = $( '#message' ).value;
         $( '.error' ).style.visibility = 'hidden';
         if ( !pass ) {
             display_error( 'Missing password.' );
@@ -110,8 +97,8 @@
     };
 
     var decrypt = function () {
-        var pass   = $( '#password' ).value;
-        var msg    = $( '#message' ).value;
+        var pass = $( '#password' ).value;
+        var msg  = $( '#message' ).value;
         $( '.error' ).style.visibility = 'hidden';
         if ( !pass ) {
             display_error( 'Missing password.' );
@@ -132,29 +119,10 @@
         $( '.error' ).style.visibility = 'hidden';
     };
 
-    var populate_secrets_list = function () {
-        get_secrets().forEach( function ( secret ) {
-            $( '#secrets-list' ).innerHTML +=
-                '<li>'+
-                    '<a href="javascript:display_secret( \'' + secret.iv + '\' );">' +
-                        secret.iv +
-                    '</a>' +
-                '</li>';
-        } );
-    };
-
-    var display_secret = function ( secret_id ) {
-        get_secrets().forEach( function ( secret ) {
-            if ( secret.iv === secret_id ) {
-                print( JSON.stringify( secret ) );
-                return;
-            }
-        } );
-    };
-
     window.onload = function () {
-        populate_secrets_list();
-        $( '#message' ).value = atob( location.hash.split( '#' )[ 1 ] );
+        if ( !!location.hash ) {
+            $( '#message' ).value = atob( location.hash.split( '#' )[ 1 ] );
+        }
     };
 
     // Stanford JavaScript Crypto Library 1.0.3
